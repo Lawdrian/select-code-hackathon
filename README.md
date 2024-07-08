@@ -1,78 +1,56 @@
-# SelectCode LLM-App
+# SelectCode Mini-Hackathon
 
-Dieses Repository enthält das Grundgerüst einer LLM-Chat-Anwendung basierend auf [Chainlit](https://github.com/Chainlit/chainlit).
-Deine Aufgabe ist es, innerhalb der gegebenen Zeit die coolste Anwendung zu bauen.
+In diesem Repository findet ihr einen optionalen Startpunkt für unseren Mini-KI-Hackathon sowie einige weitere Links und Hilfestellungen.
 
+## Wichtige Links
+- [Slides](https://www.canva.com/design/DAGKAz5umZ0/KIYMoMBhzw_vOmQoNPv_WA/edit)
+- [API Key]()
 
-## Installieren
+## In diesem Repo
+Wenn du mit einem vorgefertigten Setup für eine Chat-Anwendung starten möchtest, enthält dieses Repository einen Startpunkt. Um zu starten:
 
-Bevor du mit der Installation beginnst, stelle bitte sicher, dass du entweder [venv](https://docs.python.org/3/library/venv.html) oder [Conda](https://docs.python.org/3/library/venv.html) auf deinem System installiert hast.
-
-
-### Mit venv
-
-Folge diesen Schritten, um ein virtuelles Environment mit venv zu erstellen und zu aktivieren:
 
 ```bash
-# Navigiere in das Repository
+# Clone the repo
+git clone https://github.com/SelectCode/llm-example.git
+```
+
+Als nächstes, trag den OpenAI API Key in `.env` ein.
+
+```bash
+# Navigate into the repo
 cd ./llm-example
 
-# Erstelle ein virtuelles Environment
+# Create a virtual environment
 python3 -m venv env
 
-# Aktiviere das virtuelle Environment
-# Für Windows
+# Activate the virtual environment
+# For Windows
 env\Scripts\activate
 
-# Für Unix oder MacOS
+# For Unix or MacOS
 source env/bin/activate
-```
 
-Danach installiere die Abhängigkeiten aus der `requirements.txt` Datei:
-
-```bash
+# Install the dependencies from the `requirements.txt` file
 pip install -r requirements.txt
-```
 
-### Mit conda
-
-Folge diesen Schritten, um ein virtuelles Environment mit Conda zu erstellen und zu aktivieren:
-
-```bash
-# Navigiere in das Repository
-cd ./llm-example
-
-# Erstelle ein Conda Environment
-conda create --name env
-
-# Aktiviere das Environment
-conda activate env
-```
-
-Danach installiere die Abhängigkeiten aus der `requirements.txt` Datei:
-
-```bash
-pip install -r requirements.txt
-```
-
-## API Key hinterlegen
-In `.env`, hinterlege den API Schlüssel, den du von uns erhalten hast. Du möchtest nach dem Workshop weiterbauen?
-Du kannst dir mit sehr wenig Aufwand bei [OpenAI](platform.openai.com/) deinen eigenen Schlüssel holen.
-
-## Starten
-
-Nach der Installation der Abhängigkeiten kannst du die Anwendung mit folgendem Befehl starten:
-
-```bash
+# Launch chainlit
 chainlit run app.py -w
 ```
 
-## Loslegen!
-Jetzt kannst du loslegen indem du verschiedene Langchain Komponenten in deine Anwendung integrierst - schau dir `app.py` an!
-In `utils.py` haben wir einige nützliche Methoden hinterlegt.
+### Los gehts!
+Als nächstes kannst du damit starten, deine App anzupassen - schau dir z.B. `app.py` an!
+In `utils.py` haben wir ein paar möglicherweise hilfreiche Methoden implementiert.
 
-Du suchst Inspiration? Schau in der [Chainlit Dokumentation](https://docs.chainlit.io/integrations/langchain) oder der [LangChain Übersicht an beliebten Chains](https://python.langchain.com/docs/modules/chains/popular/) vorbei.
-Ebenfalls nützlich: Das [Chainlit Cookbook](https://github.com/Chainlit/cookbook/).
-Spannende Beispiele mit offenen APIs findest du z.B. in der [Übersicht der Langchain API Chains](https://python.langchain.com/docs/modules/chains/popular/api).
+Auf der Suche nach Inspiration? Schau dir die [Chainlit Dokumentation](https://docs.chainlit.io/integrations/langchain) oder den [Überblick belieber LangChain Chains](https://python.langchain.com/docs/modules/chains/popular/) an.
+Außerdem hilfreich: das [Chainlit Cookbook](https://github.com/Chainlit/cookbook/).
 
-Du fühlst dich eingeschränkt? Mit [Streamlit](https://streamlit.io/) kannst du mit ein wenig mehr Komplexität noch kreativer werden!
+## Weitere Links
+Einige weitere Ressourcen, die eventuell hilfreich sein könnten:
+- [Streamlit (Python UI library für Data Apps)](https://streamlit.io/)
+- [Vercel AI SDK (Tooling für Text-Streaming,...)](https://sdk.vercel.ai/docs/introduction)
+- [Cohere Dokumentation (gute Tutorials,...)](https://docs.cohere.com/)
+- [LlamaIndex (LLM data framework)](https://www.llamaindex.ai/)
+- [Ragas (RAG Evaluation Tool)](https://docs.ragas.io/en/stable/)
+- [Unstructured (Library für unstrukturierte Daten)](https://github.com/Unstructured-IO/unstructured)
+- [Azure AI Services (breites Angebot an KI-Diensten)](https://azure.microsoft.com/de-de/products/ai-services)
