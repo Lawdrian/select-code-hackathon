@@ -9,7 +9,7 @@ from langchain_community.vectorstores import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_openai import ChatOpenAI
-from agent import *
+from dataloader import VTTLoader
 import bs4
 from langchain import hub
 from langchain_chroma import Chroma
@@ -24,7 +24,7 @@ text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=10
 embeddings = OpenAIEmbeddings()
 
 welcome_message = """PDF Chat Demo"""
-
+llm = ChatOpenAI(model="gpt-3.5-turbo-0125")
 
 def process_file(file: AskFileResponse):
     import tempfile
@@ -32,46 +32,51 @@ def process_file(file: AskFileResponse):
         Loader = TextLoader
     elif file.type == "application/pdf":
         Loader = PyPDFLoader
-
-    with tempfile.NamedTemporaryFile(delete=False) as tempfile:
-        tempfile.write(file.content)
-        loader = Loader(tempfile.name)
-        documents = loader.load()
-        docs = text_splitter.split_documents(documents)
+    with open(file.path, "r", encoding="utf-8") as f:
+        content = f.read()
+        # loader = Loader(tempfile.name)
+        # documents = loader.load()
+        docs = text_splitter.split_documents(content)
         for i, doc in enumerate(docs):
             doc.metadata["source"] = f"source_{i}"
         return docs
 
 
-def get_docsearch(file: AskFileResponse):
-    docs = process_file(file)
-    cl.user_session.set("docs", docs)
-    docsearch = Chroma.from_documents(docs, embeddings)
-    return docsearch
+def loadRealData():
+    #file_paths = ["./transcripts/controlling.vtt", "./transcripts/management.vtt ","./transcripts/marketing.vtt"]
+    file_paths = "./transcripts"
+    loader = VTTLoader(file_path=file_paths)
+    documents = loader.load()
 
+    #print(documents)
+    #print(len(documents))
+    splits = text_splitter.split_documents(documents)
+    vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings)
+    return vectorstore
+'''
+    # query it
+    query = "Wann ist die Messe?"
+    docs = vectorstore.similarity_search(query)
 
+    # print results
+    print(docs[0])
+    '''
+    
 @cl.on_chat_start
 async def start():
-    # We ask the user what the meeting is about
-    meeting_topic = await cl.AskUserMessage(content=start_message).send()
-    print(meeting_topic)
-    # No async implementation in the Pinecone client, fallback to sync
-    #docsearch = await cl.make_async(get_docsearch)("./TestPrint.pdf")
-    # Load, chunk and index the contents of the blog.
-    loader = WebBaseLoader(
-        web_paths=("https://lilianweng.github.io/posts/2023-06-23-agent/",),
-        bs_kwargs=dict(
-            parse_only=bs4.SoupStrainer(
-                class_=("post-content", "post-title", "post-header")
-            )
-        ),
-    )
-    docs = loader.load()
+    # files = None
+    # while files is None:
+    #     files = await cl.AskFileMessage(
+    #         content=welcome_message,
+    #         accept=["text/plain", "application/pdf"],
+    #         max_size_mb=20,
+    #         timeout=180,
+    #     ).send()
 
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    splits = text_splitter.split_documents(docs)
-    vectorstore = Chroma.from_documents(documents=splits, embedding=OpenAIEmbeddings())
+    # file = files[0]
 
+    #docsearch = await cl.make_async(get_docsearch)(file)
+    vectorstore = loadRealData()
 
     message_history = ChatMessageHistory()
 
@@ -89,6 +94,8 @@ async def start():
         memory=memory,
         return_source_documents=True,
     )
+
+    # Let the user know that the system is ready
 
     cl.user_session.set("chain", chain)
 
