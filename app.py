@@ -10,10 +10,18 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_openai import ChatOpenAI
 from agent import *
+import bs4
+from langchain import hub
+from langchain_chroma import Chroma
+from langchain_community.document_loaders import WebBaseLoader
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+from langchain_openai import OpenAIEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 index_name = "langchain-demo"
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-embeddings = OpenAIEmbeddings(openai_api_base="https://llmproxy.meingpt.com")
+embeddings = OpenAIEmbeddings()
 
 welcome_message = """PDF Chat Demo"""
 
@@ -44,22 +52,26 @@ def get_docsearch(file: AskFileResponse):
 
 @cl.on_chat_start
 async def start():
-    # files = None
-    # while files is None:
-    #     files = await cl.AskFileMessage(
-    #         content=welcome_message,
-    #         accept=["text/plain", "application/pdf"],
-    #         max_size_mb=20,
-    #         timeout=180,
-    #     ).send()
-
-    # file = files[0]
-
-    msg = cl.Message(content=start_message)
-    await msg.send()
-
+    # We ask the user what the meeting is about
+    meeting_topic = await cl.AskUserMessage(content=start_message).send()
+    print(meeting_topic)
     # No async implementation in the Pinecone client, fallback to sync
-    docsearch = await cl.make_async(get_docsearch)(file)
+    #docsearch = await cl.make_async(get_docsearch)("./TestPrint.pdf")
+    # Load, chunk and index the contents of the blog.
+    loader = WebBaseLoader(
+        web_paths=("https://lilianweng.github.io/posts/2023-06-23-agent/",),
+        bs_kwargs=dict(
+            parse_only=bs4.SoupStrainer(
+                class_=("post-content", "post-title", "post-header")
+            )
+        ),
+    )
+    docs = loader.load()
+
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    splits = text_splitter.split_documents(docs)
+    vectorstore = Chroma.from_documents(documents=splits, embedding=OpenAIEmbeddings())
+
 
     message_history = ChatMessageHistory()
 
@@ -71,26 +83,26 @@ async def start():
     )
 
     chain = ConversationalRetrievalChain.from_llm(
-        ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True, base_url="https://llmproxy.meingpt.com"),
+        ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True),
         chain_type="stuff",
-        retriever=docsearch.as_retriever(),
+        retriever=vectorstore.as_retriever(),
         memory=memory,
         return_source_documents=True,
     )
-
-    # Let the user know that the system is ready
-    msg.content = f"`{file.name}` processed. You can now ask questions!"
-    await msg.update()
 
     cl.user_session.set("chain", chain)
 
 
 @cl.on_message
 async def main(message: cl.Message):
+
+    # TODO now we have to determine if meeting topic has been handled in previous meetings
+
     chain = cl.user_session.get("chain")  # type: ConversationalRetrievalChain
     cb = cl.AsyncLangchainCallbackHandler()
-    res = await chain.acall(message, callbacks=[cb])
+    res = await chain.ainvoke(message.content, callbacks=[cb])
     answer = res["answer"]
+
     source_documents = res["source_documents"]  # type: List[Document]
 
     text_elements = []  # type: List[cl.Text]
