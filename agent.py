@@ -1,0 +1,1 @@
+start_message = "Du möchtest also ein Meeting erstellen. Was ist der Zweck des Meetings?"

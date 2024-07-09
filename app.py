@@ -9,6 +9,7 @@ from langchain_community.vectorstores import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_openai import ChatOpenAI
+from agent import *
 
 index_name = "langchain-demo"
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
@@ -43,18 +44,18 @@ def get_docsearch(file: AskFileResponse):
 
 @cl.on_chat_start
 async def start():
-    files = None
-    while files is None:
-        files = await cl.AskFileMessage(
-            content=welcome_message,
-            accept=["text/plain", "application/pdf"],
-            max_size_mb=20,
-            timeout=180,
-        ).send()
+    # files = None
+    # while files is None:
+    #     files = await cl.AskFileMessage(
+    #         content=welcome_message,
+    #         accept=["text/plain", "application/pdf"],
+    #         max_size_mb=20,
+    #         timeout=180,
+    #     ).send()
 
-    file = files[0]
+    # file = files[0]
 
-    msg = cl.Message(content=f"Processing `{file.name}`...")
+    msg = cl.Message(content=start_message)
     await msg.send()
 
     # No async implementation in the Pinecone client, fallback to sync
