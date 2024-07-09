@@ -32,12 +32,6 @@ def process_file(file: AskFileResponse):
         for i, doc in enumerate(docs):
             doc.metadata["source"] = f"source_{i}"
         return docs
-    
-def get_docsearch(file: AskFileResponse):
-    docs = process_file(file)
-    cl.user_session.set("docs", docs)
-    docsearch = Chroma.from_documents(docs, embeddings)
-    return docsearch
 
 
 def loadRealData():
@@ -50,12 +44,15 @@ def loadRealData():
     #print(len(documents))
     splits = text_splitter.split_documents(documents)
     vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings)
+    return vectorstore
+'''
     # query it
     query = "Wann ist die Messe?"
     docs = vectorstore.similarity_search(query)
 
     # print results
     print(docs[0])
+    '''
     
 @cl.on_chat_start
 async def start():
@@ -71,6 +68,7 @@ async def start():
     # file = files[0]
 
     #docsearch = await cl.make_async(get_docsearch)(file)
+    vectorstore = loadRealData()
 
     message_history = ChatMessageHistory()
 
@@ -84,7 +82,7 @@ async def start():
     chain = ConversationalRetrievalChain.from_llm(
         ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True, base_url="https://llmproxy.meingpt.com"),
         chain_type="stuff",
-        retriever=docsearch.as_retriever(),
+        retriever=vectostore.as_retriever(),
         memory=memory,
         return_source_documents=True,
     )
@@ -100,7 +98,7 @@ async def start():
 async def main(message: cl.Message):
     chain = cl.user_session.get("chain")  # type: ConversationalRetrievalChain
     cb = cl.AsyncLangchainCallbackHandler()
-    res = await chain.acall(message, callbacks=[cb])
+    res = await chain.acall(message.content, callbacks=[cb])
     answer = res["answer"]
     source_documents = res["source_documents"]  # type: List[Document]
 
