@@ -105,10 +105,18 @@ async def start():
 
     # Generate response
     response = generate_chatgpt_response(prompt)
-    print(response)
+    response = response.choices[0].message.content
+
 
     if response == 'Ja':
-        await cl.Message(content='Du darfst kein Meeting erstellen.').send()
+        #source_name = f"source_{source_idx}"
+        text = [cl.Text(content=res['source_documents'][0].page_content, name="summary")]
+
+        await cl.Message(content='Du darfst kein Meeting erstellen. Es gibt Informationen', elements=text).send()
+    if response == 'Nein':
+        await cl.Message(content='Du darfst ein Meeting erstellen. Ich mache das für dich').send()
+
+
 
     #docs = vectorstore.similarity_search(query['output'])
 
