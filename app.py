@@ -19,6 +19,7 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from agent import *
+import openai
 index_name = "langchain-demo"
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
 embeddings = OpenAIEmbeddings()
@@ -62,6 +63,15 @@ def loadRealData():
     # print results
     print(docs[0])
     '''
+def generate_chatgpt_response(prompt):
+    response = openai.chat.completions.create(
+        model="gpt-4o",  # or other engine like "gpt-3.5-turbo"
+          messages=[
+    {"role": "user", "content": prompt}
+  ]
+    )
+    
+    return response
     
 @cl.on_chat_start
 async def start():
@@ -88,12 +98,16 @@ async def start():
     cb = cl.AsyncLangchainCallbackHandler()
     topic = await cl.AskUserMessage(content=start_message).send()
     context = topic['output']
-    context += '. Beantworten die beigefügten Dokumente die genannte Frage vor diesem Satz? Antworte ausschliesslich mit Ja oder Nein'
-    print(context)
+    #context += '. Beantworten die beigefügten Dokumente die genannte Frage vor diesem Satz? Antworte ausschliesslich mit Ja oder Nein'
     res = await chain.ainvoke(context, callbacks=[cb])
-    print(res)
-    response_answer = res['answer']
-    if response_answer == 'Ja':
+    # Example prompt
+    prompt = "Hier ist das relevante Dokument: " + res['source_documents'][0].page_content + ". " + "Enthält dieses Dokument informationen über das folgende thema: " +context + ". Antworte nur mit Ja oder Nein"  
+
+    # Generate response
+    response = generate_chatgpt_response(prompt)
+    print(response)
+
+    if response == 'Ja':
         await cl.Message(content='Du darfst kein Meeting erstellen.').send()
 
     #docs = vectorstore.similarity_search(query['output'])
