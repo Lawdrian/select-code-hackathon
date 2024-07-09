@@ -11,7 +11,6 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_openai import ChatOpenAI
 from dataloader import VTTLoader
 
-
 index_name = "langchain-demo"
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=100)
 embeddings = OpenAIEmbeddings()
@@ -82,14 +81,12 @@ async def start():
     chain = ConversationalRetrievalChain.from_llm(
         ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True, base_url="https://llmproxy.meingpt.com"),
         chain_type="stuff",
-        retriever=vectostore.as_retriever(),
+        retriever=vectorstore.as_retriever(),
         memory=memory,
         return_source_documents=True,
     )
 
     # Let the user know that the system is ready
-    msg = f"`{file.name}` processed. You can now ask questions!"
-    await msg.update()
 
     cl.user_session.set("chain", chain)
 
