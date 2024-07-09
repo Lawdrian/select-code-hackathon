@@ -107,47 +107,13 @@ async def start():
     response = generate_chatgpt_response(prompt)
     response = response.choices[0].message.content
 
-
     if response == 'Ja':
-        #source_name = f"source_{source_idx}"
         text = [cl.Text(content=res['source_documents'][0].page_content, name="summary")]
-
-        await cl.Message(content='Du darfst kein Meeting erstellen. Es gibt Informationen', elements=text).send()
+        await cl.Message(content='Du solltest kein Meeting erstellen. Es liegen bereits Informationen über das Thema des Meetings vor', elements=text).send()
     if response == 'Nein':
-        await cl.Message(content='Du darfst ein Meeting erstellen. Ich mache das für dich').send()
-
-
-
-    #docs = vectorstore.similarity_search(query['output'])
-
-
+        await cl.Message(content='Keine relevanten Informationen wurden gefunden, du darfst ein Meeting erstellen. Ich mache das für dich, wer soll am Meeting teilnehmen?').send()
 
 @cl.on_message
 async def main(message: cl.Message):
-
-    # TODO now we have to determine if meeting topic has been handled in previous meetings
-
-    chain = cl.user_session.get("chain")  # type: ConversationalRetrievalChain
-    cb = cl.AsyncLangchainCallbackHandler()
-    res = await chain.ainvoke(message.content, callbacks=[cb])
-    answer = res["answer"]
-
-    source_documents = res["source_documents"]  # type: List[Document]
-
-    text_elements = []  # type: List[cl.Text]
-
-    if source_documents:
-        for source_idx, source_doc in enumerate(source_documents):
-            source_name = f"source_{source_idx}"
-            # Create the text element referenced in the message
-            text_elements.append(
-                cl.Text(content=source_doc.page_content, name=source_name)
-            )
-        source_names = [text_el.name for text_el in text_elements]
-
-        if source_names:
-            answer += f"\nSources: {', '.join(source_names)}"
-        else:
-            answer += "\nNo sources found"
-
-    await cl.Message(content=answer, elements=text_elements).send()
+    print('hi')
+    await cl.Message(content='Ich habe das Meeting erstellt, viel Spaß!').send()
