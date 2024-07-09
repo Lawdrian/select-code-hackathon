@@ -18,7 +18,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-
+from agent import *
 index_name = "langchain-demo"
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
 embeddings = OpenAIEmbeddings()
@@ -40,6 +40,7 @@ def process_file(file: AskFileResponse):
         for i, doc in enumerate(docs):
             doc.metadata["source"] = f"source_{i}"
         return docs
+
 
 
 def loadRealData():
@@ -64,18 +65,6 @@ def loadRealData():
     
 @cl.on_chat_start
 async def start():
-    # files = None
-    # while files is None:
-    #     files = await cl.AskFileMessage(
-    #         content=welcome_message,
-    #         accept=["text/plain", "application/pdf"],
-    #         max_size_mb=20,
-    #         timeout=180,
-    #     ).send()
-
-    # file = files[0]
-
-    #docsearch = await cl.make_async(get_docsearch)(file)
     vectorstore = loadRealData()
 
     message_history = ChatMessageHistory()
@@ -88,16 +77,27 @@ async def start():
     )
 
     chain = ConversationalRetrievalChain.from_llm(
-        ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True),
+        ChatOpenAI(model_name="gpt-4o", temperature=0, streaming=True),
         chain_type="stuff",
         retriever=vectorstore.as_retriever(),
         memory=memory,
         return_source_documents=True,
     )
-
-    # Let the user know that the system is ready
-
     cl.user_session.set("chain", chain)
+    chain = cl.user_session.get("chain")  # type: ConversationalRetrievalChain
+    cb = cl.AsyncLangchainCallbackHandler()
+    topic = await cl.AskUserMessage(content=start_message).send()
+    context = topic['output']
+    context += '. Beantworten die beigefügten Dokumente die genannte Frage vor diesem Satz? Antworte ausschliesslich mit Ja oder Nein'
+    print(context)
+    res = await chain.ainvoke(context, callbacks=[cb])
+    print(res)
+    response_answer = res['answer']
+    if response_answer == 'Ja':
+        await cl.Message(content='Du darfst kein Meeting erstellen.').send()
+
+    #docs = vectorstore.similarity_search(query['output'])
+
 
 
 @cl.on_message
