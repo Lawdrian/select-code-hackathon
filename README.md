@@ -4,7 +4,10 @@ In diesem Repository findet ihr einen optionalen Startpunkt für unseren Mini-KI
 
 ## Wichtige Links
 - [Slides](https://www.canva.com/design/DAGKAz5umZ0/KIYMoMBhzw_vOmQoNPv_WA/edit)
-- [API Key]()
+- [Meeting Transkripte](https://drive.google.com/drive/folders/1S7hJ5U6nGClbatBSZuaQpzsaA6Q2ElE3?usp=sharing)
+- [API Key](https://bitwarden.selectcode.dev/#/send/cBLUj1wDSsWon9a_ojcoOg/o5wFGeBlDq1bpsptrXH99g)
+
+Achtung: Der API-Key funktioniert nur mit unserem LLM-Proxy - du musst also die OPENAI_BASE_URL entsprechend setzen:
 
 ## In diesem Repo
 Wenn du mit einem vorgefertigten Setup für eine Chat-Anwendung starten möchtest, enthält dieses Repository einen Startpunkt. Um zu starten:

@@ -12,7 +12,7 @@ from langchain_openai import ChatOpenAI
 
 index_name = "langchain-demo"
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-embeddings = OpenAIEmbeddings()
+embeddings = OpenAIEmbeddings(openai_api_base="https://llmproxy.meingpt.com")
 
 welcome_message = """PDF Chat Demo"""
 
@@ -70,7 +70,7 @@ async def start():
     )
 
     chain = ConversationalRetrievalChain.from_llm(
-        ChatOpenAI(model_name="gpt-4-turbo", temperature=0, streaming=True),
+        ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True, base_url="https://llmproxy.meingpt.com"),
         chain_type="stuff",
         retriever=docsearch.as_retriever(),
         memory=memory,
